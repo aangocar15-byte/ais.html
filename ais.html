@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIS Monitoring System Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        aside {
+            width: 260px;
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background-color: var(--accent-blue);
+            color: var(--bg-main);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        header {
+            padding: 20px 30px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .user-profile span {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .dashboard-content {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Metric Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .metric-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .metric-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .metric-icon.blue { background-color: rgba(56, 189, 248, 0.15); color: var(--accent-blue); }
+        .metric-icon.green { background-color: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
+        .metric-icon.yellow { background-color: rgba(234, 179, 8, 0.15); color: var(--accent-yellow); }
+        .metric-icon.red { background-color: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+
+        .metric-info h3 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .metric-info .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        /* Map & Table Section Layout */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Map Mockup */
+        .map-container {
+            height: 400px;
+            background: linear-gradient(135deg, #020617 0%, #1e293b 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .map-grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+            opacity: 0.4;
+        }
+
+        .ship-marker {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .ship-marker i {
+            font-size: 1.2rem;
+            color: var(--accent-blue);
+            filter: drop-shadow(0 0 4px var(--accent-blue));
+        }
+
+        .ship-marker span {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            margin-top: 2px;
+            white-space: nowrap;
+        }
+
+        /* Table Mockup */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-moving { background-color: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
+        .status-anchored { background-color: rgba(234, 179, 8, 0.15); color: var(--accent-yellow); }
+        .status-moored { background-color: rgba(56, 189, 248, 0.15); color: var(--accent-blue); }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside>
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-anchor"></i>
+            <span>AIS Maritime</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#" class="active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="#"><i class="fa-solid fa-map-location-dot"></i> Live Tracking</a></li>
+            <li><a href="#"><i class="fa-solid fa-ship"></i> Data Kapal</a></li>
+            <li><a href="#"><i class="fa-solid fa-triangle-exclamation"></i> Peringatan (Alert)</a></li>
+            <li><a href="#"><i class="fa-solid fa-file-lines"></i> Laporan & Log</a></li>
+            <li><a href="#"><i class="fa-solid fa-gear"></i> Pengaturan</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Section -->
+    <main>
+        <header>
+            <h1>Operational Dashboard</h1>
+            <div class="user-profile">
+                <span>PT Internasional Asia Pasifik Sinergi</span>
+                <i class="fa-solid fa-circle-user" style="font-size: 1.5rem; color: var(--accent-blue);"></i>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <!-- Metric Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon blue"><i class="fa-solid fa-ship"></i></div>
+                    <div class="metric-info">
+                        <h3>Total Kapal Terpantau</h3>
+                        <div class="value">148</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon green"><i class="fa-solid fa-navigation"></i></div>
+                    <div class="metric-info">
+                        <h3>Kapal Berlayar (Underway)</h3>
+                        <div class="value">96</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon yellow"><i class="fa-solid fa-anchor"></i></div>
+                    <div class="metric-info">
+                        <h3>Berlabuh (Anchored)</h3>
+                        <div class="value">38</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="metric-info">
+                        <h3>Peringatan / Alert</h3>
+                        <div class="value">4</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map and Vessel List Section -->
+            <div class="grid-layout">
+                <!-- Map Area -->
+                <div class="card">
+                    <div class="card-title">
+                        <span>Peta Pelacakan Real-Time</span>
+                        <i class="fa-solid fa-expand" style="cursor: pointer; color: var(--text-muted);"></i>
+                    </div>
+                    <div class="map-container">
+                        <div class="map-grid-overlay"></div>
+                        <!-- Mockup Ship Markers on Map -->
+                        <div class="ship-marker" style="top: 30%; left: 40%;">
+                            <i class="fa-solid fa-location-arrow" style="transform: rotate(45deg);"></i>
+                            <span>MV Nusantara 01</span>
+                        </div>
+                        <div class="ship-marker" style="top: 60%; left: 70%;">
+                            <i class="fa-solid fa-location-arrow" style="transform: rotate(-30deg);"></i>
+                            <span>TB Samudera Jaya</span>
+                        </div>
+                        <div class="ship-marker" style="top: 45%; left: 20%;">
+                            <i class="fa-solid fa-location-arrow" style="transform: rotate(90deg);"></i>
+                            <span>KM Marina Express</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Active Vessel List -->
+                <div class="card">
+                    <div class="card-title">
+                        <span>Aktivitas Armada Terbaru</span>
+                        <a href="#" style="font-size: 0.85rem; color: var(--accent-blue); text-decoration: none;">Lihat Semua</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama Kapal</th>
+                                    <th>Status</th>
+                                    <th>Kecepatan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>MV Nusantara 01</strong></td>
+                                    <td><span class="status-badge status-moving">Underway</span></td>
+                                    <td>12.4 knots</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>TB Samudera Jaya</strong></td>
+                                    <td><span class="status-badge status-anchored">Anchored</span></td>
+                                    <td>0.0 knots</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>KM Marina Express</strong></td>
+                                    <td><span class="status-badge status-moving">Underway</span></td>
+                                    <td>18.1 knots</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>TK Bahari Indah</strong></td>
+                                    <td><span class="status-badge status-moored">Moored</span></td>
+                                    <td>0.2 knots</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Table Section -->
+            <div class="card">
+                <div class="card-title">
+                    <span>Daftar Detail Sinyal AIS & Posisi Kapal</span>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>MMSI / Nama Kapal</th>
+                                <th>Jenis Kapal</th>
+                                <th>Koordinat (Lat / Lon)</th>
+                                <th>Heading / SOG</th>
+                                <th>Tujuan (Destination)</th>
+                                <th>Update Terakhir</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>525102340</strong><br><span style="color: var(--text-muted); font-size: 0.8rem;">MV Nusantara 01</span></td>
+                                <td>Cargo</td>
+                                <td>05°45'S / 106°52'E</td>
+                                <td>145° / 12.4 kn</td>
+                                <td>IDTPP (Tanjung Priok)</td>
+                                <td>Baru saja</td>
+                            </tr>
+                            <tr>
+                                <td><strong>525998112</strong><br><span style="color: var(--text-muted); font-size: 0.8rem;">TB Samudera Jaya</span></td>
+                                <td>Tug Boat</td>
+                                <td>06°01'S / 106°58'E</td>
+                                <td>010° / 0.0 kn</td>
+                                <td>IDSUB (Surabaya)</td>
+                                <td>2 menit lalu</td>
+                            </tr>
+                            <tr>
+                                <td><strong>525334900</strong><br><span style="color: var(--text-muted); font-size: 0.8rem;">KM Marina Express</span></td>
+                                <td>Passenger</td>
+                                <td>05°30'S / 107°10'E</td>
+                                <td>280° / 18.1 kn</td>
+                                <td>IDJKT (Jakarta)</td>
+                                <td>5 menit lalu</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
